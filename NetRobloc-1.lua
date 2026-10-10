@@ -6,7 +6,7 @@ local LP = P.LocalPlayer
 -- 1. UI
 -- ===================================================
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "🎃NetRobloc🎃"
+Gui.Name = "NetRobloc"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 -- Thử nhiều nơi gắn UI để chạy được trên nhiều executor
@@ -19,8 +19,8 @@ end
 
 -- Frame Chính (Cố định ở giữa dưới màn hình)
 local Frame = Instance.new("Frame", Gui)
-Frame.Size = UDim2.new(0, 280, 0, 150)
-Frame.Position = UDim2.new(0.5, -140, 1, -165) -- Vị trí ban đầu (kéo được)
+Frame.Size = UDim2.new(0, 360, 0, 226)
+Frame.Position = UDim2.new(0.5, -180, 1, -241) -- Vị trí ban đầu (kéo được)
 Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Frame.BorderSizePixel = 0
 Frame.Active = true -- CHO PHÉP KÉO DI CHUYỂN
@@ -34,30 +34,30 @@ Stroke.Color = Color3.fromRGB(255, 255, 255)
 
 -- Label DKHUB (Màu Cầu Vồng)
 local HubTitle = Instance.new("TextLabel", Frame)
-HubTitle.Size = UDim2.new(1, -68, 0, 25)
-HubTitle.Position = UDim2.new(0, 64, 0, 5)
+HubTitle.Size = UDim2.new(1, -164, 0, 28)
+HubTitle.Position = UDim2.new(0, 84, 0, 8)
 HubTitle.BackgroundTransparency = 1
 HubTitle.Text = "NetRobloc"
-HubTitle.TextSize = 18
+HubTitle.TextSize = 22
 HubTitle.Font = Enum.Font.SourceSansBold
 
 -- Label Tên Người Chơi (Màu Cầu Vồng)
 local PlayerLabel = Instance.new("TextLabel", Frame)
-PlayerLabel.Size = UDim2.new(1, -68, 0, 20)
-PlayerLabel.Position = UDim2.new(0, 64, 0, 30)
+PlayerLabel.Size = UDim2.new(1, -164, 0, 22)
+PlayerLabel.Position = UDim2.new(0, 84, 0, 38)
 PlayerLabel.TextTruncate = Enum.TextTruncate.AtEnd
 PlayerLabel.BackgroundTransparency = 1
 PlayerLabel.Text = "Player: " .. LP.DisplayName .. " (@" .. LP.Name .. ")"
-PlayerLabel.TextSize = 13
+PlayerLabel.TextSize = 15
 PlayerLabel.Font = Enum.Font.SourceSansSemibold
 
 -- Label Thời Gian (Màu Trắng)
 local TimeLabel = Instance.new("TextLabel", Frame)
-TimeLabel.Size = UDim2.new(1, -68, 0, 18)
-TimeLabel.Position = UDim2.new(0, 64, 0, 50)
+TimeLabel.Size = UDim2.new(1, -164, 0, 20)
+TimeLabel.Position = UDim2.new(0, 84, 0, 62)
 TimeLabel.BackgroundTransparency = 1
 TimeLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-TimeLabel.TextSize = 12
+TimeLabel.TextSize = 14
 TimeLabel.Font = Enum.Font.SourceSans
 
 -- Ảnh logo (góc trái)
@@ -82,8 +82,8 @@ local BgCorner = Instance.new("UICorner", Bg)
 BgCorner.CornerRadius = UDim.new(0, 10)
 
 local Logo = Instance.new("ImageLabel", Frame)
-Logo.Size = UDim2.new(0, 52, 0, 52)
-Logo.Position = UDim2.new(0, 8, 0, 10)
+Logo.Size = UDim2.new(0, 64, 0, 64)
+Logo.Position = UDim2.new(0, 10, 0, 10)
 Logo.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Logo.BorderSizePixel = 0
 Logo.ScaleType = Enum.ScaleType.Crop
@@ -107,6 +107,22 @@ elseif IMAGE_ID ~= "0" then
     Logo.Image = "rbxassetid://" .. IMAGE_ID
     Bg.Image = "rbxassetid://" .. IMAGE_ID
 end
+
+-- Avatar Roblox của bạn (góc phải)
+local function AvatarURL(userId)
+    return "rbxthumb://type=AvatarHeadShot&id=" .. userId .. "&w=150&h=150"
+end
+
+local MyAvatar = Instance.new("ImageLabel", Frame)
+MyAvatar.Name = "MyAvatar"
+MyAvatar.Size = UDim2.new(0, 64, 0, 64)
+MyAvatar.Position = UDim2.new(1, -74, 0, 10)
+MyAvatar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MyAvatar.BorderSizePixel = 0
+MyAvatar.Image = AvatarURL(LP.UserId)
+Instance.new("UICorner", MyAvatar).CornerRadius = UDim.new(1, 0)
+local MyAvatarStroke = Instance.new("UIStroke", MyAvatar)
+MyAvatarStroke.Thickness = 2
 
 -- Kéo thả di chuyển (chuột + cảm ứng)
 local dragging, dragStart, startPos
@@ -132,12 +148,12 @@ end)
 
 -- Hop Server
 local Btn = Instance.new("TextButton", Frame)
-Btn.Size = UDim2.new(0, 240, 0, 32)
-Btn.Position = UDim2.new(0.5, -120, 0, 70)
+Btn.Size = UDim2.new(0, 320, 0, 38)
+Btn.Position = UDim2.new(0.5, -160, 0, 84)
 Btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Btn.TextColor3 = Color3.fromRGB(0, 255, 127)
 Btn.Text = "🎃Hop Server Ít Người"
-Btn.TextSize = 14
+Btn.TextSize = 16
 Btn.Font = Enum.Font.SourceSansBold
 
 local BtnCorner = Instance.new("UICorner", Btn)
@@ -148,12 +164,12 @@ local DISCORD_INVITE = "https://discord.gg/5vppsXWTqg" -- << THAY LINK DISCORD C
 local DISCORD_CODE = DISCORD_INVITE:match("discord%.gg/(%w+)") or DISCORD_INVITE:match("discord%.com/invite/(%w+)")
 
 local DcBtn = Instance.new("TextButton", Frame)
-DcBtn.Size = UDim2.new(0, 240, 0, 32)
-DcBtn.Position = UDim2.new(0.5, -120, 0, 108)
+DcBtn.Size = UDim2.new(0, 320, 0, 38)
+DcBtn.Position = UDim2.new(0.5, -160, 0, 128)
 DcBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- màu Discord
 DcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 DcBtn.Text = "💬 Join Discord có script free"
-DcBtn.TextSize = 14
+DcBtn.TextSize = 16
 DcBtn.Font = Enum.Font.SourceSansBold
 
 local DcCorner = Instance.new("UICorner", DcBtn)
@@ -205,6 +221,156 @@ DcBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ===================================================
+-- DANH SÁCH NGƯỜI CHƠI TRONG SERVER
+-- ===================================================
+local ListBtn = Instance.new("TextButton", Frame)
+ListBtn.Size = UDim2.new(0, 320, 0, 38)
+ListBtn.Position = UDim2.new(0.5, -160, 0, 172)
+ListBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+ListBtn.TextColor3 = Color3.fromRGB(255, 200, 0)
+ListBtn.Text = "👥 Danh Sách Người Chơi"
+ListBtn.TextSize = 16
+ListBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", ListBtn).CornerRadius = UDim.new(0, 6)
+
+local Panel = Instance.new("Frame", Gui)
+Panel.Name = "PlayerListPanel"
+Panel.AnchorPoint = Vector2.new(0.5, 0.5)
+Panel.Size = UDim2.new(0, 400, 0.8, 0)
+Panel.Position = UDim2.new(0.5, 0, 0.5, 0)
+Panel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Panel.BorderSizePixel = 0
+Panel.Active = true
+Panel.Visible = false
+Instance.new("UICorner", Panel).CornerRadius = UDim.new(0, 10)
+local PanelLimit = Instance.new("UISizeConstraint", Panel)
+PanelLimit.MaxSize = Vector2.new(400, 560) -- giới hạn để không tràn màn hình
+local PanelStroke = Instance.new("UIStroke", Panel)
+PanelStroke.Thickness = 2
+
+local PanelTitle = Instance.new("TextLabel", Panel)
+PanelTitle.Size = UDim2.new(1, -50, 0, 36)
+PanelTitle.Position = UDim2.new(0, 12, 0, 4)
+PanelTitle.BackgroundTransparency = 1
+PanelTitle.TextXAlignment = Enum.TextXAlignment.Left
+PanelTitle.TextSize = 20
+PanelTitle.Font = Enum.Font.SourceSansBold
+PanelTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local CloseBtn = Instance.new("TextButton", Panel)
+CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+CloseBtn.Position = UDim2.new(1, -40, 0, 6)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Text = "X"
+CloseBtn.TextSize = 16
+CloseBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+
+local ListFrame = Instance.new("ScrollingFrame", Panel)
+ListFrame.Size = UDim2.new(1, -16, 1, -70)
+ListFrame.Position = UDim2.new(0, 8, 0, 46)
+ListFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+ListFrame.BorderSizePixel = 0
+ListFrame.ScrollBarThickness = 6
+ListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Instance.new("UICorner", ListFrame).CornerRadius = UDim.new(0, 6)
+local Layout = Instance.new("UIListLayout", ListFrame)
+Layout.Padding = UDim.new(0, 3)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+local Pad = Instance.new("UIPadding", ListFrame)
+Pad.PaddingTop, Pad.PaddingLeft, Pad.PaddingRight = UDim.new(0, 4), UDim.new(0, 4), UDim.new(0, 4)
+
+local Hint = Instance.new("TextLabel", Panel)
+Hint.Size = UDim2.new(1, 0, 0, 20)
+Hint.Position = UDim2.new(0, 0, 1, -22)
+Hint.BackgroundTransparency = 1
+Hint.Text = "Bấm vào tên để copy @username"
+Hint.TextColor3 = Color3.fromRGB(150, 150, 150)
+Hint.TextSize = 13
+Hint.Font = Enum.Font.SourceSans
+
+local function RefreshList()
+    for _, c in ipairs(ListFrame:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+
+    local players = P:GetPlayers()
+    table.sort(players, function(a, b)
+        return a.DisplayName:lower() < b.DisplayName:lower()
+    end)
+
+    PanelTitle.Text = "👥 Người chơi (" .. #players .. "/" .. P.MaxPlayers .. ")"
+
+    for i, pl in ipairs(players) do
+        local Row = Instance.new("TextButton", ListFrame)
+        Row.Size = UDim2.new(1, 0, 0, 56)
+        Row.LayoutOrder = i
+        Row.BackgroundColor3 = (pl == LP) and Color3.fromRGB(20, 70, 40) or Color3.fromRGB(38, 38, 38)
+        Row.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Row.TextXAlignment = Enum.TextXAlignment.Left
+        Row.TextSize = 15
+        Row.Font = Enum.Font.SourceSansSemibold
+        Row.Text = pl.DisplayName .. "\n@" .. pl.Name .. ((pl == LP) and "   ← Bạn" or "")
+        Instance.new("UICorner", Row).CornerRadius = UDim.new(0, 8)
+        local RowPad = Instance.new("UIPadding", Row)
+        RowPad.PaddingLeft = UDim.new(0, 66) -- chừa chỗ cho avatar
+
+        -- Avatar Roblox của từng người
+        local Av = Instance.new("ImageLabel", Row)
+        Av.Size = UDim2.new(0, 46, 0, 46)
+        Av.Position = UDim2.new(0, -60, 0.5, -23) -- bù lại PaddingLeft
+        Av.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+        Av.BorderSizePixel = 0
+        Av.Image = AvatarURL(pl.UserId)
+        Instance.new("UICorner", Av).CornerRadius = UDim.new(1, 0)
+
+        Row.MouseButton1Click:Connect(function()
+            if setclipboard then
+                pcall(setclipboard, pl.Name)
+                local old = Row.Text
+                Row.Text = "  ✅ Đã copy: " .. pl.Name
+                task.wait(1)
+                if Row.Parent then Row.Text = old end
+            end
+        end)
+    end
+end
+
+P.PlayerAdded:Connect(RefreshList)
+P.PlayerRemoving:Connect(function()
+    task.wait(0.1) -- đợi người chơi thoát khỏi danh sách rồi mới cập nhật
+    RefreshList()
+end)
+RefreshList()
+
+ListBtn.MouseButton1Click:Connect(function()
+    Panel.Visible = not Panel.Visible
+    if Panel.Visible then RefreshList() end
+end)
+CloseBtn.MouseButton1Click:Connect(function() Panel.Visible = false end)
+
+-- Kéo thả bảng danh sách (chuột + cảm ứng)
+do
+    local dragging, dragStart, startPos
+    Panel.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging, dragStart, startPos = true, input.Position, Panel.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local d = input.Position - dragStart
+            Panel.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+        end
+    end)
+end
+
+-- ===================================================
 -- 2. RGB
 -- ===================================================
 local hue = 0
@@ -216,6 +382,8 @@ RS.RenderStepped:Connect(function(delta)
     HubTitle.TextColor3 = rainbowColor
     PlayerLabel.TextColor3 = rainbowColor
     Stroke.Color = rainbowColor
+    PanelStroke.Color = rainbowColor
+    MyAvatarStroke.Color = rainbowColor
     LogoStroke.Color = rainbowColor
 
     -- Cập nhật đồng hồ thời gian thực
