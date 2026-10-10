@@ -469,16 +469,15 @@ TS.TeleportInitFailed:Connect(function()
     Btn.Text = " Thử Server khác..."
 end)
 
-local MAX_PAGES = 12        -- quét tối đa bao nhiêu trang (mỗi trang 100 server)
+local MAX_PAGES = 3         -- quét bao nhiêu trang (như bản gốc: 3 trang, mỗi trang 100 server)
 local MAX_TARGET = 2        -- chỉ vào server DƯỚI số người này (2 = server có 1 người)
-local ALLOW_FALLBACK = false -- true = nếu không có server nào đủ ít người thì vào server ít nhất tìm được
+local ALLOW_FALLBACK = true  -- true = nếu không có server dưới MAX_TARGET người thì vào server ít người nhất tìm được
 
 local function GetServers(cursor)
-    local suffix = "/servers/Public?sortOrder=Asc&excludeFullGames=true&limit=100" .. (cursor and ("&cursor=" .. cursor) or "")
-    -- Ưu tiên API chính thức (dữ liệu mới), roproxy chỉ dùng dự phòng vì có thể bị cache cũ
+    -- Giữ nguyên cách lấy server của bản gốc (roproxy trước, roblox dự phòng)
     local urls = {
-        "https://games.roblox.com/v1/games/" .. game.PlaceId .. suffix,
-        "https://games.roproxy.com/v1/games/" .. game.PlaceId .. suffix,
+        "https://games.roproxy.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. (cursor and "&cursor=" .. cursor or ""),
+        "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. (cursor and "&cursor=" .. cursor or "")
     }
 
     for _, url in ipairs(urls) do
@@ -544,6 +543,7 @@ local function SafeHop()
         local target = pool[math.random(1, poolSize)]
 
         Btn.Text = " Vô Server: " .. target.playing .. "/" .. target.maxPlayers .. " người"
+        task.wait(0.5)
         
         local tpOK = pcall(function()
             TS:TeleportToPlaceInstance(game.PlaceId, target.id, LP)
