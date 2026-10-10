@@ -94,19 +94,72 @@ LogoCorner.CornerRadius = UDim.new(1, 0) -- ảnh tròn (đổi thành UDim.new(
 local LogoStroke = Instance.new("UIStroke", Logo)
 LogoStroke.Thickness = 2
 
-if IMAGE_URL ~= "" and writefile and getcustomasset then
-    task.spawn(function()
-        pcall(function()
-            writefile("NetRobloc_logo.jpg", game:HttpGet(IMAGE_URL))
-            local asset = getcustomasset("NetRobloc_logo.jpg")
-            Logo.Image = asset
-            Bg.Image = asset
-        end)
-    end)
-elseif IMAGE_ID ~= "0" then
-    Logo.Image = "rbxassetid://" .. IMAGE_ID
-    Bg.Image = "rbxassetid://" .. IMAGE_ID
+-- Chữ "NR" hiện tạm trong lúc ảnh đang tải (hoặc khi ảnh không tải được)
+local LogoText = Instance.new("TextLabel", Logo)
+LogoText.Size = UDim2.new(1, 0, 1, 0)
+LogoText.BackgroundTransparency = 1
+LogoText.Text = "NR"
+LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+LogoText.TextSize = 22
+LogoText.Font = Enum.Font.SourceSansBold
+
+-- Tải ảnh từ link (có thử lại + dự phòng). Trả về asset hoặc nil + lý do
+local function DownloadImage(url, fileName)
+    if not (writefile and getcustomasset) then
+        return nil, "Executor không hỗ trợ writefile/getcustomasset"
+    end
+
+    local data
+    local ok, res = pcall(function() return game:HttpGet(url) end)
+    if ok and type(res) == "string" and #res > 100 then
+        data = res
+    else
+        -- dự phòng: dùng request/http_request nếu HttpGet bị lỗi
+        local req = (syn and syn.request) or (http and http.request) or http_request or request
+        if req then
+            local ok2, r = pcall(function() return req({Url = url, Method = "GET"}) end)
+            if ok2 and r and type(r.Body) == "string" and #r.Body > 100 then
+                data = r.Body
+            end
+        end
+    end
+    if not data then
+        return nil, "Không tải được ảnh từ link (HttpGet/request bị chặn hoặc link hỏng)"
+    end
+
+    local okW, errW = pcall(writefile, fileName, data)
+    if not okW then return nil, "writefile lỗi: " .. tostring(errW) end
+
+    local okA, asset = pcall(getcustomasset, fileName)
+    if not okA or not asset or asset == "" then
+        return nil, "getcustomasset lỗi: " .. tostring(asset)
+    end
+    return asset
 end
+
+task.spawn(function()
+    local asset, lastErr
+
+    if IMAGE_URL ~= "" then
+        for attempt = 1, 3 do
+            asset, lastErr = DownloadImage(IMAGE_URL, "NetRobloc_logo_v2.jpg")
+            if asset then break end
+            task.wait(1)
+        end
+    end
+
+    if not asset and IMAGE_ID ~= "0" then
+        asset = "rbxassetid://" .. IMAGE_ID
+    end
+
+    if asset then
+        Logo.Image = asset
+        Bg.Image = asset
+        LogoText:Destroy()
+    else
+        warn("[NetRobloc] Không hiện được logo: " .. tostring(lastErr or "chưa đặt IMAGE_URL/IMAGE_ID"))
+    end
+end)
 
 -- Avatar Roblox của bạn (góc phải)
 local function AvatarURL(userId)
