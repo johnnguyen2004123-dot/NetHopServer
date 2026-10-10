@@ -3,10 +3,10 @@ local UIS = game:GetService("UserInputService")
 local LP = P.LocalPlayer
 
 -- ===================================================
--- 1. TẠO GIAO DIỆN (UI) CỐ ĐỊNH Ở DƯỚI MÀN HÌNH
+-- 1. UI
 -- ===================================================
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "NetRobloc"
+Gui.Name = "🎃NetRobloc🎃"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 -- Thử nhiều nơi gắn UI để chạy được trên nhiều executor
@@ -64,6 +64,23 @@ TimeLabel.Font = Enum.Font.SourceSans
 local IMAGE_ID  = "0"  -- << ĐỔI: ID ảnh Roblox (số), ví dụ "1234567890"
 local IMAGE_URL = "https://files.catbox.moe/xymm7j.jpg"   -- << HOẶC dán link ảnh trực tiếp (.png/.jpg), cần executor hỗ trợ writefile/getcustomasset
 
+-- Nền ảnh (ảnh logo phủ kín khung, phủ lớp đen mờ để chữ dễ đọc)
+local BG_DARKNESS = 0.75 -- 0 = ảnh rõ nhất, 1 = đen hoàn toàn (nên để 0.7 - 0.85)
+
+local Bg = Instance.new("ImageLabel", Frame)
+Bg.Name = "BgImage"
+Bg.Size = UDim2.new(1, 0, 1, 0)
+Bg.Position = UDim2.new(0, 0, 0, 0)
+Bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Bg.BorderSizePixel = 0
+Bg.ScaleType = Enum.ScaleType.Crop
+Bg.ImageTransparency = BG_DARKNESS
+Bg.ZIndex = 0
+Bg.Active = false
+
+local BgCorner = Instance.new("UICorner", Bg)
+BgCorner.CornerRadius = UDim.new(0, 10)
+
 local Logo = Instance.new("ImageLabel", Frame)
 Logo.Size = UDim2.new(0, 52, 0, 52)
 Logo.Position = UDim2.new(0, 8, 0, 10)
@@ -81,11 +98,14 @@ if IMAGE_URL ~= "" and writefile and getcustomasset then
     task.spawn(function()
         pcall(function()
             writefile("NetRobloc_logo.jpg", game:HttpGet(IMAGE_URL))
-            Logo.Image = getcustomasset("NetRobloc_logo.jpg")
+            local asset = getcustomasset("NetRobloc_logo.jpg")
+            Logo.Image = asset
+            Bg.Image = asset
         end)
     end)
 elseif IMAGE_ID ~= "0" then
     Logo.Image = "rbxassetid://" .. IMAGE_ID
+    Bg.Image = "rbxassetid://" .. IMAGE_ID
 end
 
 -- Kéo thả di chuyển (chuột + cảm ứng)
@@ -110,13 +130,13 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
--- Nút Hop Server
+-- Hop Server
 local Btn = Instance.new("TextButton", Frame)
 Btn.Size = UDim2.new(0, 240, 0, 32)
 Btn.Position = UDim2.new(0.5, -120, 0, 70)
 Btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Btn.TextColor3 = Color3.fromRGB(0, 255, 127)
-Btn.Text = "⚡ Hop Server Ít Người"
+Btn.Text = "🎃Hop Server Ít Người"
 Btn.TextSize = 14
 Btn.Font = Enum.Font.SourceSansBold
 
@@ -132,7 +152,7 @@ DcBtn.Size = UDim2.new(0, 240, 0, 32)
 DcBtn.Position = UDim2.new(0.5, -120, 0, 108)
 DcBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- màu Discord
 DcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-DcBtn.Text = "💬 Join Discord"
+DcBtn.Text = "💬 Join Discord có script free"
 DcBtn.TextSize = 14
 DcBtn.Font = Enum.Font.SourceSansBold
 
@@ -185,7 +205,7 @@ DcBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ===================================================
--- 2. VÒNG LẶP ĐỔI MÀU CẦU VỒNG & CẬP NHẬT THỜI GIAN
+-- 2. RGB
 -- ===================================================
 local hue = 0
 RS.RenderStepped:Connect(function(delta)
@@ -276,7 +296,7 @@ local function SafeHop()
     end
 
     isRunning = false
-    Btn.Text = "⚡ Hop Server Ít Người"
+    Btn.Text = "🎃 Hop Server Ít Người"
 end
 
 Btn.MouseButton1Click:Connect(SafeHop)
