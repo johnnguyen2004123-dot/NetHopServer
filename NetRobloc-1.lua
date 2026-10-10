@@ -469,12 +469,18 @@ TS.TeleportInitFailed:Connect(function()
     Btn.Text = " Thử Server khác..."
 end)
 
+local MAX_PAGES = 12        -- quét tối đa bao nhiêu trang (mỗi trang 100 server)
+local MAX_TARGET = 2        -- chỉ vào server DƯỚI số người này (2 = server có 1 người)
+local ALLOW_FALLBACK = false -- true = nếu không có server nào đủ ít người thì vào server ít nhất tìm được
+
 local function GetServers(cursor)
+    local suffix = "/servers/Public?sortOrder=Asc&excludeFullGames=true&limit=100" .. (cursor and ("&cursor=" .. cursor) or "")
+    -- Ưu tiên API chính thức (dữ liệu mới), roproxy chỉ dùng dự phòng vì có thể bị cache cũ
     local urls = {
-        "https://games.roproxy.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. (cursor and "&cursor=" .. cursor or ""),
-        "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. (cursor and "&cursor=" .. cursor or "")
+        "https://games.roblox.com/v1/games/" .. game.PlaceId .. suffix,
+        "https://games.roproxy.com/v1/games/" .. game.PlaceId .. suffix,
     }
-    
+
     for _, url in ipairs(urls) do
         local success, raw = pcall(function() return game:HttpGet(url) end)
         if success and raw and #raw > 10 then
@@ -494,31 +500,48 @@ local function SafeHop()
     Btn.Text = " Đang quét Server..."
 
     local currentJob = game.JobId
-    local validServers = {}
-    local cursor = ""
+    local validServers = {}   -- mọi server còn chỗ
+    local lowServers = {}     -- server dưới MAX_TARGET người
+    local seen = {}
+    local cursor = nil
 
-    for page = 1, 3 do
-        local result = GetServers(cursor ~= "" and cursor or nil)
+    for page = 1, MAX_PAGES do
+        Btn.Text = " Đang quét Server... (" .. page .. "/" .. MAX_PAGES .. ")"
+        local result = GetServers(cursor)
         if result and result.data then
-            for _, s in ipairs(result.data) do
-                if s.id ~= currentJob and type(s.playing) == "number" and s.playing < s.maxPlayers and s.playing > 0 then
-                    table.insert(validServers, s)
+            for _, sv in ipairs(result.data) do
+                if sv.id ~= currentJob and not seen[sv.id]
+                    and type(sv.playing) == "number" and type(sv.maxPlayers) == "number"
+                    and sv.playing < sv.maxPlayers and sv.playing > 0 then
+                    seen[sv.id] = true
+                    table.insert(validServers, sv)
+                    if sv.playing < MAX_TARGET then
+                        table.insert(lowServers, sv)
+                    end
                 end
             end
-            if result.nextPageCursor then
-                cursor = result.nextPageCursor
-            else
-                break
-            end
+            cursor = result.nextPageCursor
+            if not cursor then break end
+        else
+            task.wait(1) -- bị giới hạn tốc độ, đợi rồi thử lại trang này
         end
-        task.wait(0.1)
+
+        -- Đủ server ít người thì dừng quét sớm
+        if #lowServers >= 5 then break end
+
+        task.wait(0.25)
     end
 
-    if #validServers > 0 then
-        table.sort(validServers, function(a, b) return a.playing < b.playing end)
+    local pool = lowServers
+    if #pool == 0 and ALLOW_FALLBACK then
+        pool = validServers
+    end
 
-        local poolSize = math.min(5, #validServers)
-        local target = validServers[math.random(1, poolSize)]
+    if #pool > 0 then
+        table.sort(pool, function(a, b) return a.playing < b.playing end)
+
+        local poolSize = math.min(5, #pool)
+        local target = pool[math.random(1, poolSize)]
 
         Btn.Text = " Vô Server: " .. target.playing .. "/" .. target.maxPlayers .. " người"
         
@@ -531,7 +554,7 @@ local function SafeHop()
             task.wait(1)
         end
     else
-        Btn.Text = " Không tìm thấy Server!"
+        Btn.Text = " Không có server dưới " .. MAX_TARGET .. " người!"
         task.wait(1)
     end
 
