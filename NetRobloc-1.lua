@@ -103,6 +103,17 @@ LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
 LogoText.TextSize = 22
 LogoText.Font = Enum.Font.SourceSansBold
 
+-- Dòng báo lỗi logo hiện ngay dưới menu (tự mất sau 20 giây)
+local StatusLabel = Instance.new("TextLabel", Frame)
+StatusLabel.Size = UDim2.new(1, 0, 0, 34)
+StatusLabel.Position = UDim2.new(0, 0, 1, 4)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.TextWrapped = true
+StatusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
+StatusLabel.TextSize = 13
+StatusLabel.Font = Enum.Font.SourceSansBold
+StatusLabel.Text = ""
+
 -- Tải ảnh từ link (có thử lại + dự phòng). Trả về asset hoặc nil + lý do
 local function DownloadImage(url, fileName)
     if not (writefile and getcustomasset) then
@@ -127,8 +138,11 @@ local function DownloadImage(url, fileName)
         return nil, "Không tải được ảnh từ link (HttpGet/request bị chặn hoặc link hỏng)"
     end
 
+    if isfile and delfile and isfile(fileName) then pcall(delfile, fileName) end -- xoá file cũ tránh bị cache hỏng
     local okW, errW = pcall(writefile, fileName, data)
     if not okW then return nil, "writefile lỗi: " .. tostring(errW) end
+    task.wait(0.3) -- đợi file ghi xong
+    if isfile and not isfile(fileName) then return nil, "File ảnh không được lưu vào workspace" end
 
     local okA, asset = pcall(getcustomasset, fileName)
     if not okA or not asset or asset == "" then
@@ -157,7 +171,12 @@ task.spawn(function()
         Bg.Image = asset
         LogoText:Destroy()
     else
-        warn("[NetRobloc] Không hiện được logo: " .. tostring(lastErr or "chưa đặt IMAGE_URL/IMAGE_ID"))
+        local reason = tostring(lastErr or "chưa đặt IMAGE_URL/IMAGE_ID")
+        warn("[NetRobloc] Không hiện được logo: " .. reason)
+        LogoText.Text = "✖"
+        LogoText.TextColor3 = Color3.fromRGB(255, 90, 90)
+        StatusLabel.Text = "Logo lỗi: " .. reason
+        task.delay(20, function() if StatusLabel.Parent then StatusLabel.Text = "" end end)
     end
 end)
 
