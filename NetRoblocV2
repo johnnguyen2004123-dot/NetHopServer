@@ -52,7 +52,7 @@ end
 -- 1. UI
 -- ===================================================
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "NetRobloc"
+Gui.Name = "NetRobloc V2"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 -- Thử nhiều nơi gắn UI để chạy được trên nhiều executor
