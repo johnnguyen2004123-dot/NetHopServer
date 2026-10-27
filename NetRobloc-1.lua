@@ -2,48 +2,6 @@ local P, TS, HS, RS = game:GetService("Players"), game:GetService("TeleportServi
 local UIS = game:GetService("UserInputService")
 local LP = P.LocalPlayer
 
--- Chờ game load xong (quan trọng khi auto execute sau khi hop)
-if not game:IsLoaded() then game.Loaded:Wait() end
-while not LP do task.wait() LP = P.LocalPlayer end
-
--- ===================================================
--- 0. CÀI ĐẶT (lưu lại để giữ nguyên sau mỗi lần hop)
--- ===================================================
-local env = (getgenv and getgenv()) or _G
-local SETTINGS_FILE = "NetRobloc_settings.json"
-local Settings = { autoHop = true }
-
-do
-    local loaded
-    if readfile and isfile and isfile(SETTINGS_FILE) then
-        local ok, d = pcall(function() return HS:JSONDecode(readfile(SETTINGS_FILE)) end)
-        if ok and type(d) == "table" then loaded = d end
-    end
-    if not loaded and type(env.NetRoblocSettings) == "table" then loaded = env.NetRoblocSettings end
-    if loaded then
-        if type(loaded.autoHop) == "boolean" then Settings.autoHop = loaded.autoHop end
-    end
-end
-
-local function SaveSettings()
-    env.NetRoblocSettings = Settings
-    if writefile then pcall(writefile, SETTINGS_FILE, HS:JSONEncode(Settings)) end
-end
-
--- Xoá GUI cũ nếu script bị chạy 2 lần (vd: autoexec + queue_on_teleport) để không bị trùng
-do
-    local parents = {}
-    pcall(function() if gethui then table.insert(parents, gethui()) end end)
-    pcall(function() table.insert(parents, game:GetService("CoreGui")) end)
-    pcall(function() table.insert(parents, LP:FindFirstChild("PlayerGui")) end)
-    for _, parent in ipairs(parents) do
-        pcall(function()
-            local old = parent:FindFirstChild("NetRobloc")
-            if old then old:Destroy() end
-        end)
-    end
-end
-
 -- ===================================================
 -- 1. UI
 -- ===================================================
@@ -61,8 +19,8 @@ end
 
 -- Frame Chính (Cố định ở giữa dưới màn hình)
 local Frame = Instance.new("Frame", Gui)
-Frame.Size = UDim2.new(0, 360, 0, 270)
-Frame.Position = UDim2.new(0.5, -180, 1, -285) -- Vị trí ban đầu (kéo được)
+Frame.Size = UDim2.new(0, 360, 0, 226)
+Frame.Position = UDim2.new(0.5, -180, 1, -241) -- Vị trí ban đầu (kéo được)
 Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Frame.BorderSizePixel = 0
 Frame.Active = true -- CHO PHÉP KÉO DI CHUYỂN
@@ -273,32 +231,13 @@ Btn.Font = Enum.Font.SourceSansBold
 local BtnCorner = Instance.new("UICorner", Btn)
 BtnCorner.CornerRadius = UDim.new(0, 6)
 
--- Nút Auto Tìm Server Ít Người (bật/tắt)
-local AutoBtn = Instance.new("TextButton", Frame)
-AutoBtn.Size = UDim2.new(0, 320, 0, 38)
-AutoBtn.Position = UDim2.new(0.5, -160, 0, 128)
-AutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-AutoBtn.TextSize = 16
-AutoBtn.Font = Enum.Font.SourceSansBold
-Instance.new("UICorner", AutoBtn).CornerRadius = UDim.new(0, 6)
-
-local ON_COLOR, OFF_COLOR = Color3.fromRGB(30, 110, 60), Color3.fromRGB(110, 40, 40)
-local function AutoLabel()
-    return "🎃Auto Tìm Server Ít Người: " .. (Settings.autoHop and "BẬT" or "TẮT")
-end
-local function UpdateToggleUI()
-    AutoBtn.Text = AutoLabel()
-    AutoBtn.BackgroundColor3 = Settings.autoHop and ON_COLOR or OFF_COLOR
-end
-UpdateToggleUI()
-
 -- Nút Join Discord (nằm dưới nút Hop)
 local DISCORD_INVITE = "https://discord.gg/5vppsXWTqg" -- << THAY LINK DISCORD CỦA BẠN VÀO ĐÂY
 local DISCORD_CODE = DISCORD_INVITE:match("discord%.gg/(%w+)") or DISCORD_INVITE:match("discord%.com/invite/(%w+)")
 
 local DcBtn = Instance.new("TextButton", Frame)
 DcBtn.Size = UDim2.new(0, 320, 0, 38)
-DcBtn.Position = UDim2.new(0.5, -160, 0, 172)
+DcBtn.Position = UDim2.new(0.5, -160, 0, 128)
 DcBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- màu Discord
 DcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 DcBtn.Text = "💬 Join Discord có script free"
@@ -358,7 +297,7 @@ end)
 -- ===================================================
 local ListBtn = Instance.new("TextButton", Frame)
 ListBtn.Size = UDim2.new(0, 320, 0, 38)
-ListBtn.Position = UDim2.new(0.5, -160, 0, 216)
+ListBtn.Position = UDim2.new(0.5, -160, 0, 172)
 ListBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 ListBtn.TextColor3 = Color3.fromRGB(255, 200, 0)
 ListBtn.Text = "👥 Danh Sách Người Chơi"
@@ -526,17 +465,13 @@ end)
 -- ===================================================
 -- 3. HÀM HOP SERVER ÍT NGƯỜI (100% CHẮC CHẮN)
 -- ===================================================
-local BTN_HOP_TEXT = "🎃Hop Server Ít Người"
-
-local lastBtn = Btn
 TS.TeleportInitFailed:Connect(function()
-    lastBtn.Text = " Thử Server khác..."
+    Btn.Text = " Thử Server khác..."
 end)
 
--- Cấu hình hop
-local MAX_PAGES = 8           -- quét tối đa bao nhiêu trang (mỗi trang 100 server)
-local MAX_TARGET = 2          -- chỉ vào server DƯỚI số người này (2 = server chỉ có 1 người)
-local ALLOW_FALLBACK = false  -- false = chỉ vào server 1 người; true = không có thì vào server ít người nhất tìm được
+local MAX_PAGES = 3         -- quét bao nhiêu trang (như bản gốc: 3 trang, mỗi trang 100 server)
+local MAX_TARGET = 2        -- chỉ vào server DƯỚI số người này (2 = server có 1 người)
+local ALLOW_FALLBACK = true  -- true = nếu không có server dưới MAX_TARGET người thì vào server ít người nhất tìm được
 
 local function GetServers(cursor)
     -- Giữ nguyên cách lấy server của bản gốc (roproxy trước, roblox dự phòng)
@@ -558,89 +493,36 @@ local function GetServers(cursor)
 end
 
 local isRunning = false
-local tried = {}   -- server đã thử vào (tránh lặp lại khi teleport lỗi)
-
--- ===================================================
--- AUTO EXECUTE (tự chạy lại script sau khi sang server mới)
--- ===================================================
-local SCRIPT_URL  = ""                -- << (Khuyên dùng) dán link RAW của script này, vd: https://raw.githubusercontent.com/.../NetRobloc.lua
-local SCRIPT_FILE = "NetRobloc.lua"   -- << hoặc lưu file này vào thư mục workspace của executor (cùng tên)
-
-local AUTO_EXECUTE = true   -- luôn tự chạy lại script sau khi hop
-local queued = false
-local function EnsureAutoExecQueue(showError)
-    local q = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
-    if not AUTO_EXECUTE or queued then return end
-
-    local function warnUser(msg)
-        warn("[NetRobloc] Auto Execute: " .. msg)
-        if showError then
-            StatusLabel.Text = "Auto Execute: " .. msg
-            task.delay(15, function() if StatusLabel.Parent then StatusLabel.Text = "" end end)
-        end
-    end
-
-    if not q then return warnUser("executor không hỗ trợ queue_on_teleport (hãy bỏ script vào thư mục autoexec)") end
-
-    local code
-    if SCRIPT_URL ~= "" then
-        code = 'loadstring(game:HttpGet("' .. SCRIPT_URL .. '"))()'
-    elseif readfile and isfile and isfile(SCRIPT_FILE) then
-        code = 'loadstring(readfile("' .. SCRIPT_FILE .. '"))()'
-    else
-        return warnUser("chưa có SCRIPT_URL và không thấy file " .. SCRIPT_FILE .. " trong workspace")
-    end
-
-    if pcall(q, code) then queued = true end
-end
-
--- button: nút đang bấm | idleText: chữ gốc của nút
--- maxPages: số trang quét | maxTarget: chỉ lấy server DƯỚI số người này
--- fallback: nếu không có server phù hợp thì có vào server ít người nhất không
-local function HopServer(button, idleText, maxPages, maxTarget, fallback)
+local function SafeHop()
     if isRunning then return end
     isRunning = true
-    lastBtn = button
-    button.Text = " Đang quét Server..."
+    Btn.Text = " Đang quét Server..."
 
     local currentJob = game.JobId
     local validServers = {}   -- mọi server còn chỗ
-    local lowServers = {}     -- server dưới maxTarget người
+    local lowServers = {}     -- server dưới MAX_TARGET người
     local seen = {}
     local cursor = nil
-    local fails = 0
 
-    local page = 0
-    while page < maxPages do
-        page += 1
-        button.Text = " Đang quét Server... (" .. page .. "/" .. maxPages .. ")"
+    for page = 1, MAX_PAGES do
+        Btn.Text = " Đang quét Server... (" .. page .. "/" .. MAX_PAGES .. ")"
         local result = GetServers(cursor)
         if result and result.data then
-            local sawHigher = false
             for _, sv in ipairs(result.data) do
-                if sv.id ~= currentJob and not seen[sv.id] and not tried[sv.id]
+                if sv.id ~= currentJob and not seen[sv.id]
                     and type(sv.playing) == "number" and type(sv.maxPlayers) == "number"
                     and sv.playing < sv.maxPlayers and sv.playing > 0 then
                     seen[sv.id] = true
                     table.insert(validServers, sv)
-                    if sv.playing < maxTarget then
+                    if sv.playing < MAX_TARGET then
                         table.insert(lowServers, sv)
-                    else
-                        sawHigher = true
                     end
                 end
             end
             cursor = result.nextPageCursor
             if not cursor then break end
-
-            -- Danh sách sắp xếp tăng dần: gặp server >= maxTarget thì phía sau không còn server ít người nữa
-            if not fallback and sawHigher then break end
         else
-            -- bị giới hạn tốc độ: đợi rồi thử lại đúng trang này (tối đa 3 lần)
-            fails += 1
-            page -= 1
-            if fails >= 3 then break end
-            task.wait(1.5)
+            task.wait(1) -- bị giới hạn tốc độ, đợi rồi thử lại trang này
         end
 
         -- Đủ server ít người thì dừng quét sớm
@@ -650,7 +532,7 @@ local function HopServer(button, idleText, maxPages, maxTarget, fallback)
     end
 
     local pool = lowServers
-    if #pool == 0 and fallback then
+    if #pool == 0 and ALLOW_FALLBACK then
         pool = validServers
     end
 
@@ -660,56 +542,24 @@ local function HopServer(button, idleText, maxPages, maxTarget, fallback)
         local poolSize = math.min(5, #pool)
         local target = pool[math.random(1, poolSize)]
 
-        button.Text = " Vô Server: " .. target.playing .. "/" .. target.maxPlayers .. " người"
-        tried[target.id] = true
-        EnsureAutoExecQueue(true)   -- đảm bảo script tự chạy lại ở server mới
+        Btn.Text = " Vô Server: " .. target.playing .. "/" .. target.maxPlayers .. " người"
         task.wait(0.5)
-
+        
         local tpOK = pcall(function()
             TS:TeleportToPlaceInstance(game.PlaceId, target.id, LP)
         end)
 
         if not tpOK then
-            button.Text = "Lỗi kết nối, thử lại..."
+            Btn.Text = "Lỗi kết nối, thử lại..."
             task.wait(1)
         end
     else
-        tried = {}  -- không còn server nào để thử -> xoá danh sách đã thử để quét lại từ đầu
-        button.Text = " Không có server dưới " .. maxTarget .. " người!"
-        task.wait(1.5)
+        Btn.Text = " Không có server dưới " .. MAX_TARGET .. " người!"
+        task.wait(1)
     end
 
     isRunning = false
-    button.Text = (type(idleText) == "function") and idleText() or idleText
+    Btn.Text = "🎃 Hop Server Ít Người"
 end
 
--- Nút 🎃Hop Server Ít Người: bấm 1 lần = hop 1 lần
-Btn.MouseButton1Click:Connect(function()
-    HopServer(Btn, BTN_HOP_TEXT, MAX_PAGES, MAX_TARGET, ALLOW_FALLBACK)
-end)
-
--- ===================================================
--- 4. AUTO TÌM SERVER ÍT NGƯỜI: server có hơn 1 người -> tự hop sang server 1 người
--- ===================================================
-local AUTO_START_DELAY = 3    -- đợi vài giây sau khi vào server cho ổn định
-local AUTO_RETRY_DELAY = 10   -- nghỉ giữa các lần thử (tránh spam API / đang teleport)
-
-AutoBtn.MouseButton1Click:Connect(function()
-    Settings.autoHop = not Settings.autoHop
-    SaveSettings()
-    UpdateToggleUI()
-end)
-
-SaveSettings()
-EnsureAutoExecQueue(true)   -- xếp hàng ngay khi chạy, phòng trường hợp bạn tự đổi server
-
-task.spawn(function()
-    task.wait(AUTO_START_DELAY)
-    while Gui.Parent do
-        if Settings.autoHop and not isRunning and #P:GetPlayers() > 1 then
-            HopServer(AutoBtn, AutoLabel, MAX_PAGES, MAX_TARGET, false)
-            task.wait(AUTO_RETRY_DELAY)
-        end
-        task.wait(1)
-    end
-end)
+Btn.MouseButton1Click:Connect(SafeHop)
