@@ -353,13 +353,13 @@ local function UpdateToggleUI()
 end
 UpdateToggleUI()
 
--- Nút Join Discord (nằm dưới nút Hop)
+-- Nút Join Discord (nằm dưới cùng)
 local DISCORD_INVITE = "https://discord.gg/5vppsXWTqg" -- << THAY LINK DISCORD CỦA BẠN VÀO ĐÂY
 local DISCORD_CODE = DISCORD_INVITE:match("discord%.gg/(%w+)") or DISCORD_INVITE:match("discord%.com/invite/(%w+)")
 
 local DcBtn = Instance.new("TextButton", Frame)
 DcBtn.Size = UDim2.new(0, 320, 0, 38)
-DcBtn.Position = UDim2.new(0.5, -160, 0, 172)
+DcBtn.Position = UDim2.new(0.5, -160, 0, 260)
 DcBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- màu Discord
 DcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 DcBtn.Text = "💬 Join Discord có script free"
@@ -785,7 +785,7 @@ local SV_LIST_MAX = 3   -- chỉ hiện server có <= 3 người
 
 local SvBtn = Instance.new("TextButton", Frame)
 SvBtn.Size = UDim2.new(0, 320, 0, 38)
-SvBtn.Position = UDim2.new(0.5, -160, 0, 260)
+SvBtn.Position = UDim2.new(0.5, -160, 0, 172)
 SvBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 SvBtn.TextColor3 = Color3.fromRGB(0, 200, 255)
 SvBtn.Text = "🌐 Danh Sách Server Ít Người"
